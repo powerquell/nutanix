@@ -1,5 +1,7 @@
 # Get-NTNXUVMSnapshots.ps1
 
+Query snapshots from Nutanix Prism
+
 ## Examples
 
 ### Get all Snapshots of the Cluster NTNXCL01.internal.network
