@@ -12,5 +12,5 @@ Query snapshots from Nutanix Prism
 
 ## Tested Environments
 
-AOS: 5.20.1.1
+AOS: 5.20.1.1, 5.20.2.1
 Powershell 5.1 on Windows Server 2019
