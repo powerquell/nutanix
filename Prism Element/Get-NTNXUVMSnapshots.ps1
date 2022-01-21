@@ -14,6 +14,8 @@
   Switch for CSV Export
  .PARAMETER ExportCSVPAth
   Destiantion for the CSV File
+ .PARAMETER Age
+  Display only Age without creating date of the snapshot
  .Notes
     Author: Erik Hirschfelder - https://github.com/powerquell
     Last edit: 2021-09-07
@@ -44,8 +46,12 @@ param (
 
     [Parameter(Mandatory=$false)]
     [String]
-    $ExportCSVPAth
+    $ExportCSVPAth,
     #$ExportCSVPath = "C:\tools\SnapshotExport.csv" | If you want to set a default CSV location you can do this here.
+
+    [Parameter(Mandatory=$false)]
+    [switch]
+    $Age
 )
 
 #Variables
