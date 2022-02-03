@@ -14,6 +14,8 @@
   Switch for CSV Export
  .PARAMETER ExportCSVPAth
   Destiantion for the CSV File
+ .PARAMETER Age
+  Display only Age without creating date of the snapshot
  .Notes
     Author: Erik Hirschfelder - https://github.com/powerquell
     Last edit: 2021-09-07
@@ -44,8 +46,12 @@ param (
 
     [Parameter(Mandatory=$false)]
     [String]
-    $ExportCSVPAth
+    $ExportCSVPAth,
     #$ExportCSVPath = "C:\tools\SnapshotExport.csv" | If you want to set a default CSV location you can do this here.
+
+    [Parameter(Mandatory=$false)]
+    [switch]
+    $Age
 )
 
 #Variables
@@ -54,6 +60,12 @@ $NTNXCluster = $NTNXCluster.Split(";")
 $NTNXException = $NTNXException.Split(";")
 
 $NTNXCredentials = Get-Credential -Message "Please provide Nutanix administrator credentials (e.g.: admin@domain.suffix):"
+
+## Varianbles for age parameter
+#If you want to set other threshold for coloring the console output you can do so here.
+
+$ageRed = 30
+$ageYellow = 7
 
 #endregion
 #region import Snapin
@@ -92,9 +104,11 @@ catch {
     $Column1 = New-Object System.Data.DataColumn VM-Name,([string])
     $Column2 = New-Object System.Data.DataColumn Snapshot-Name,([string])
     $Column3 = New-Object System.Data.DataColumn Creation-Time,([string])
+    $Column4 = New-Object System.Data.DataColumn Age,([int32])
     $Results.Columns.Add($Column1)
     $Results.Columns.Add($Column2)
     $Results.Columns.Add($Column3)
+    $Results.Columns.Add($Column4)
 
 # Get all VMs and snapshots
     $AllNTNXVM = Get-NTNXVM -ErrorAction SilentlyContinue
@@ -115,11 +129,13 @@ catch {
         $CreationTimeStamp = ($Snapshot.createdTime)/1000
         $CreationTime = (Get-Date '1/1/1970').AddMilliseconds($CreationTimeStamp)
         $SnapshotCreationTime = $CreationTime.ToLocalTime()
+        $SnapshotAge = ((Get-Date) - $SnapshotCreationTime).Days
 
         $Row = $Results.NewRow()
         $Row."VM-Name" = $VMname
         $Row."Snapshot-Name" = $SnapshotName
         $Row."Creation-Time" = $SnapshotCreationTime
+        $Row."Age" = $SnapshotAge
         $Results.Rows.Add($Row)
     }
 
@@ -145,7 +161,34 @@ if ($ExportCSV) {
     }
 }
 else {
-    $Results | Format-Table
+    $Results | Format-Table VM-Name, Snapshot-Name, Creation-Time, @{
+        Label      = "Age"
+        Expression =
+        ##Using escape codes
+        #Color table
+        #Red:       31
+        #Green:     32
+        #Yellow:    33
+        #Blue:      34
+        #Magenta:   35
+        #Cyan:      36
+        {
+            if ($_.Age -ge $ageRed) {
+
+                $color = "31" #red
+            }
+            elseif ($_.Age -ge $ageYellow) {
+
+                $color = "33" #yellow
+            }
+            else {
+
+                $color = "0" #white
+            }
+            $e = [char]27
+            "$e[${color}m$($_.Age)${e}[0m"
+        }
+    }
 }
 
 #endregion
